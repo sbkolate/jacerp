@@ -60,6 +60,25 @@ class Quotation(SellingController):
 
 		#update enquiry status
 		self.update_opportunity()
+		
+		self.create_customer_from_opportunity() #creating customer from opportunity  AMITHA M D
+		
+	def create_customer_from_opportunity(self):				
+		#cname= frappe.db.get_value("Customer", {"name": self.name, "customer_name": self.customer_name, "lead_name":self.lead},"customer_name")
+		#counts=frappe.db.sql("""select count(*) from tabCustomer where lead_name = '%s' and customer_name='%s'"""%(self.lead, self.customer_name))
+		
+		#if counts == 0 :			
+		doc_customer_opportunity = frappe.new_doc("Customer") 
+		doc_customer_opportunity.update({ 	
+			"customer_name": self.customer_name,
+			"territory": "All Territories",
+			"customer_group":"Individual",
+			"status":"Opportunity",
+			"lead_name":self.lead,
+			"customer_type":"Individual"})
+		doc_customer_opportunity.save()
+		#else:
+		#	frappe.throw(_("Quotation already created from this Customer!"))
 
 	def on_cancel(self):
 		#update enquiry status

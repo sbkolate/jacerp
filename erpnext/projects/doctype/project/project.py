@@ -6,7 +6,7 @@ import frappe
 
 from frappe.utils import flt, getdate, get_url
 from frappe import _
-
+from datetime import date
 from frappe.model.document import Document
 
 class Project(Document):
@@ -41,13 +41,72 @@ class Project(Document):
 
 	def get_tasks(self):
 		return frappe.get_all("Task", "*", {"project": self.name}, order_by="exp_start_date asc")
+		
+	def get_purchase_orders(self):		
+		return frappe.get_all("Purchase Order", "*", {"project": self.name})	
 
 	def validate(self):
 		self.validate_dates()
-		self.sync_tasks()
-		self.tasks = []
-		self.send_welcome_email()
-
+		self.create_po_if_supplier_exists()
+		
+	def create_po_if_supplier_exists(self):
+		subcontract_names = []	
+		suppliers=[]
+		for row in self.get("project_subcontractors"):			
+			if row.supplier:
+				suppliers.append(row.supplier)		
+		unique_list_of_suppliers=list(set(suppliers))
+		
+		for sup in unique_list_of_suppliers:	
+			pi_item = []
+			t=0
+			for t in self.project_subcontractors:							
+				if(t.supplier and sup == t.supplier):
+					if t.po_id:
+						new_pi= frappe.get_doc("Purchase Invoive", t.po_id)
+					else:
+						new_pi = frappe.new_doc("Purchase Invoice")
+						new_pi.name = self.name	
+						
+					
+					
+					pi_item.append({
+						"item_code": t.service_code,
+						"item_name":t.service_name,
+						"deck_color":row.deck_color,
+						"rail_color":row.rail_color,
+						"board_replacement":row.board_replacement,
+						"custom":row.custom,
+						"deck_sft":row.deck_sft,
+						"rail_sft":row.rail_sft,
+						"qty":row.total_sft,
+						"schedule_date":date.today(),
+						"description":t.service_name,
+				#		"qty":1,
+						"uom": "SFT",
+						"project":self.project_name,
+						"conversion_factor":1 })
+				else:
+					pass
+			new_pi.update({
+				"company":self.company,				
+				"supplier":sup,
+		#		"customer":self.customer,
+				"transaction_date":date.today(),
+				"project":self.name,
+				"items":pi_item,
+				"ignore_pricing_rule": "Yes"
+			})	
+#			frappe.throw(_(t.supplier))	
+			new_pi.flags.ignore_links = True
+			new_pi.flags.from_project = True
+			new_pi.flags.ignore_feed = True
+			new_pi.save(ignore_permissions = True)
+			subcontract_names.append(new_pi.name)					
+		
+		for t in frappe.get_all("Purchase Invoice", "name", {"project": self.name, "name": ("not in", subcontract_names)}):
+			frappe.delete_doc("Purchase Invoice", str(t.name).encode('ascii','ignore'))		
+	
 	def validate_dates(self):
 		if self.expected_start_date and self.expected_end_date:
 			if getdate(self.expected_end_date) < getdate(self.expected_start_date):
@@ -85,7 +144,7 @@ class Project(Document):
 
 		self.update_percent_complete()
 		self.update_costing()
-
+	
 	def update_project(self):
 		self.update_percent_complete()
 		self.update_costing()

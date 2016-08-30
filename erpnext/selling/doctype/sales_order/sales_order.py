@@ -38,7 +38,7 @@ class SalesOrder(SellingController):
 		self.validate_drop_ship()
 
 		from erpnext.stock.doctype.packed_item.packed_item import make_packing_list
-		make_packing_list(self)
+		make_packing_list(self)												  
 
 		self.validate_with_previous_doc()
 		self.set_status()
@@ -159,6 +159,75 @@ class SalesOrder(SellingController):
 		frappe.get_doc('Authorization Control').validate_approving_authority(self.doctype, self.company, self.base_grand_total, self)
 
 		self.update_prevdoc_status('submit')
+		
+		#Automatically create project when Sales Order is created     # AMITHA M D
+		self.create_project_from_sales_order()
+		
+		#Update Opportunity Status if 'SO' is created from Opportunity    # AMITHA M D
+#		self.update_opportunity_status()
+		
+		
+	#Update Opportunity Status if SO is created from Opportunity          # AMITHA M D
+#	def update_opportunity_status(self):
+#		if self.from_opportunity:
+#			frappe.db.sql("""update `tabOpportunity` set status = %s where name=%s""",("Sales Order",self.from_opportunity))
+			#frappe.msgprint(_("Updated Opportunity Status"))
+			
+	#Automatically create project when Sales Order is created               # AMITHA M D
+	def create_project_from_sales_order(self):	
+		if self.customer:	
+			cust=self.customer		
+#		for t in self.items:
+#			if t.item_code :
+#				new_item_code =t.item_code
+
+		doc_project= frappe.new_doc("Project") 		
+		
+		pro_subcontractor=[]
+		tasks=[]
+		
+	#	a=[]
+	#	for d in self.get("items"):
+	#		a.append(d.supplier_name)
+	#	b=set(a)
+	#	frappe.throw(_(b))
+				
+		for d in self.get("items"):
+			pro_subcontractor.append(	
+				{
+			#		"supplier": d.supplier_name,
+					"service_code":d.item_code,
+					"deck_color":d.deck_color,
+					"rail_color":d.rail_color,
+					"board_replacement":d.board_replacement,
+					"custom":d.custom,
+					"deck_sft":d.deck_sft,
+					"rail_sft":d.rail_sft,
+					"total_sft":d.qty
+				}		
+			)
+			tasks.append(
+				{
+					"title":d.item_code
+				}
+			)
+	#	frappe.throw(_(pro_subcontractor))
+		doc_project.update({ 	
+	#		"name":self.project_name,
+			"project_name": self.customer,
+	#		"project":self.project_name,
+			"status": "Open",
+			"project_type": "Internal",
+			"is_active":"Yes",
+			"priority":"Medium",
+			"customer": cust,
+			"sales_order":self.name,
+			"project_subcontractors":pro_subcontractor,
+			"tasks" :tasks,
+			"customer_type":"Individual"})		
+		doc_project.save()		
+		self.project = self.customer
+		
 
 	def on_cancel(self):
 		# Cannot cancel closed SO

@@ -103,7 +103,14 @@ frappe.ui.form.on("Item", {
 		if(!frm.doc.description)
 			frm.set_value("description", frm.doc.item_code);
 	},
-
+	
+	item_name:function(frm) {					// Created by Amitha M.D.for Ally homes
+		return frm.call({
+			doc:frm.doc,
+			method:"create_unique_item_code"
+		});
+	},
+	
 	copy_from_item_group: function(frm) {
 		return frm.call({
 			doc: frm.doc,
