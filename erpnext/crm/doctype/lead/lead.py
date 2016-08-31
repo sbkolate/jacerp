@@ -49,6 +49,28 @@ class Lead(SellingController):
 
 	def on_update(self):
 		self.add_calendar_event()
+		if self.contact_by :			
+			self.make_lead_to_opportunity()
+
+	def make_lead_to_opportunity(self): 		
+		oppor = frappe.db.get_values("Opportunity",{"lead":self.name,"customer_name":self.lead_name},"name")
+		if not oppor:			
+			doc_lead_opportunity = frappe.new_doc("Opportunity") 			
+		else:				
+			doc_lead_opportunity = frappe.get_doc("Opportunity", {"lead":self.name})			
+		doc_lead_opportunity.update({ 	
+			"lead":self.name,
+			"enquiry_from":"Lead",
+			"status":"Open", 
+			"enquiry_type":"Sales",
+			"company":self.company,
+			"customer_name":self.lead_name,
+			"contact_by":self.contact_by,			
+			"with_items":0,
+			"contact_display":self.lead_name
+			})
+		doc_lead_opportunity.save()
+		self.status="Opportunity"			
 
 	def add_calendar_event(self, opts=None, force=False):
 		super(Lead, self).add_calendar_event({
@@ -110,7 +132,7 @@ def _make_customer(source_name, target_doc=None, ignore_permissions=False):
 	return doclist
 
 @frappe.whitelist()
-def make_opportunity(source_name, target_doc=None):
+def make_opportunity(source_name, target_doc=None):	
 	target_doc = get_mapped_doc("Lead", source_name,
 		{"Lead": {
 			"doctype": "Opportunity",
@@ -123,7 +145,16 @@ def make_opportunity(source_name, target_doc=None):
 				"email_id": "contact_email",
 				"mobile_no": "contact_mobile"
 			}
-		}}, target_doc)
+		},
+		"Lead Contact Log": {
+			"doctype": "Lead Contact Log",
+			"field_map": {
+				"parent": "prevdoc_docname",
+				"parenttype": "prevdoc_doctype"				
+			},
+			"add_if_empty": True
+		},
+	}, target_doc)
 
 	return target_doc
 

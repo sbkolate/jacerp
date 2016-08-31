@@ -39,7 +39,7 @@ erpnext.LeadController = frappe.ui.form.Controller.extend({
 			erpnext.utils.clear_address_and_contact(cur_frm);
 		}
 	},
-
+	
 	create_customer: function() {
 		frappe.model.open_mapped_doc({
 			method: "erpnext.crm.doctype.lead.lead.make_customer",

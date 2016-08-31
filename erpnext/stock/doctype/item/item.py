@@ -60,6 +60,20 @@ class Item(WebsiteGenerator):
 
 		if self.opening_stock:
 			self.set_opening_stock()
+			
+	def create_unique_item_code(self):		           # written by Amitha M.D. for Ally homes		
+		if self.item_name:
+			item_name=self.item_name;
+			words=[]
+			words = item_name.split(' ')
+			code=[]
+			for word in words:
+				code.append(word[0])		
+			code=''.join(code)		
+			self.item_code=code
+			
+		if not self.website_image:
+			return
 
 	def validate(self):
 		super(Item, self).validate()
