@@ -243,3 +243,79 @@ cur_frm.cscript.on_submit = function(doc, cdt, cdn) {
 		cur_frm.email_doc(frappe.boot.notification_settings.sales_order_message);
 	}
 };
+
+frappe.ui.form.on("Sales Order Item", "rail_sft", function(frm, cdt, cdn) //Created by Amitha M.D.
+{
+	item = locals[cdt][cdn];
+	if(item.deck_sft!=undefined){			
+		item = locals[cdt][cdn];   
+		total_qty = item.deck_sft+item.rail_sft;
+		item.qty = total_qty;	
+		item.total_sft=total_qty;	
+		cur_frm.refresh_fields();
+	}
+	
+})
+
+frappe.ui.form.on("Sales Order Item", "deck_sft", function(frm, cdt, cdn) //Created by Amitha M.D.
+{
+	item = locals[cdt][cdn];
+	if(item.rail_sft!=undefined){			
+		item = locals[cdt][cdn];   
+		total_qty = flt(item.deck_sft)+flt(item.rail_sft);
+		item.qty = total_qty;		
+		item.total_sft=total_qty;	
+		cur_frm.refresh_fields();
+	}
+	
+})
+
+frappe.ui.form.on("Sales Order Item", "amount", function(frm, cdt, cdn) //Created by Amitha M.D.
+{		
+	if(locals[cdt][cdn].qty!=undefined){
+		row  = locals[cdt][cdn]
+		
+		var area  = row.qty;
+		var total = row.amount;	
+				
+		long_rate  =  flt((total/area),10);	
+		small_rate =  flt((total/area),2);	
+//		alert(long_rate);
+		
+		r= flt((total/area),2);
+		row['rate'] = flt((total/area),2);
+		
+//		row['amount'] = rate* area;
+		
+//		alert(total);
+	//	frappe.model.set_value(cdt, cdn, "item_rate", rate);		
+		
+		
+//		var n = rate.toFixed(2);
+//		row.rate = n;
+		row.rate= long_rate;
+//		row.amount =flt((long_rate * area),0); // Re-assigning amount when changes according to Qty * Rate //Headache :-> 
+	////	row.amount = Math.round(100*total)/100;
+		doc.rounded_total=Math.round(100*total)/100;
+		row.price = area * flt((total/area),2);
+//		d.amount = n * d.qty
+    
+		//cur_frm.refresh_fields();
+		
+/*		var totals=0;
+		for(key in frm.doc.items)
+		{			
+			var item = cur_frm.doc.items[key]	
+			if(item.amount != undefined)
+			{
+					totals  = totals + item.amount;				
+			}
+		}
+		cur_frm.set_value("total", d.my_amount);	
+		cur_frm.set_value("rate", d.my_rate);
+		cur_frm.set_value("amount", d.my_amount);
+*/					
+		cur_frm.refresh_fields();
+		//frm.refresh();		
+	}	
+});
