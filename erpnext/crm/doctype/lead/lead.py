@@ -67,7 +67,8 @@ class Lead(SellingController):
 			"customer_name":self.lead_name,
 			"contact_by":self.contact_by,			
 			"with_items":0,
-			"contact_display":self.lead_name
+			"contact_display":self.lead_name,
+			"contact_date":self.contact_date			
 			})
 		doc_lead_opportunity.save()
 		self.status="Opportunity"			
