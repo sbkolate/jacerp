@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import flt, getdate, get_url
-from frappe import _
+from frappe import _,msgprint
 from datetime import date
 from frappe.model.document import Document
 
@@ -25,6 +25,16 @@ class Project(Document):
 
 	def __setup__(self):
 		self.onload()
+		
+		
+	def on_trash(self):
+		#checks Purchase Orders ( ie. Check Any Subcontractors for this Project)
+		
+		any_subcontractor = frappe.db.sql_list("""select name from `tabPurchase Invoice` 
+			where project = %s""", (self.name))		
+		if any_subcontractor:
+			frappe.throw(_("Purchase Invoice {0} must be deleted/cancelled before deleting this Project").format(any_subcontractor))
+	
 
 	def load_tasks(self):
 		"""Load `tasks` from the database"""
@@ -60,10 +70,11 @@ class Project(Document):
 		for sup in unique_list_of_suppliers:	
 			pi_item = []
 			t=0
-			for t in self.project_subcontractors:							
+			for t in self.project_subcontractors:	
+#				frappe.msgprint(_(t))					
 				if(t.supplier and sup == t.supplier):
-					if t.po_id:
-						new_pi= frappe.get_doc("Purchase Invoive", t.po_id)
+					if t.pi_id:
+						new_pi= frappe.get_doc("Purchase Invoive", {"name":t.pi_id})
 					else:
 						new_pi = frappe.new_doc("Purchase Invoice")
 						new_pi.name = self.name	
@@ -84,7 +95,8 @@ class Project(Document):
 						"description":t.service_name,
 				#		"qty":1,
 						"uom": "SFT",
-						"project":self.project_name,
+						"project":self.name,
+						"pi_id":t.pi_id,
 						"conversion_factor":1 })
 				else:
 					pass

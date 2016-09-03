@@ -214,7 +214,8 @@ class SalesOrder(SellingController):
 	#	frappe.throw(_(pro_subcontractor))
 		doc_project.update({ 	
 	#		"name":self.project_name,
-			"project_name": self.customer,
+			"project_name": self.suggest_project_name(),
+			"name":self.suggest_project_name(),
 	#		"project":self.project_name,
 			"status": "Open",
 			"project_type": "Internal",
@@ -227,6 +228,14 @@ class SalesOrder(SellingController):
 			"customer_type":"Individual"})		
 		doc_project.save()		
 		self.project = self.customer
+		
+	def suggest_project_name(self):
+		service_code=""
+		for row in self.get("items"):
+			service_code=row.item_code
+			break;
+		pjt_name=service_code+"-"+self.customer
+		return pjt_name
 		
 
 	def on_cancel(self):
