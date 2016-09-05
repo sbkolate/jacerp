@@ -1,0 +1,18 @@
+{
+ "add_total_row": 0, 
+ "apply_user_permissions": 1, 
+ "creation": "2016-08-31 02:59:17.043896", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "modified": "2016-08-31 02:59:38.960141", 
+ "modified_by": "Administrator", 
+ "module": "CRM", 
+ "name": "IncomingLeadReportBuilder", 
+ "owner": "Administrator", 
+ "ref_doctype": "Lead", 
+ "report_name": "IncomingLeadReportBuilder", 
+ "report_type": "Report Builder"
+}

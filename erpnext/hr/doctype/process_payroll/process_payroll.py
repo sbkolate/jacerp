@@ -10,6 +10,7 @@ from frappe.model.document import Document
 
 class ProcessPayroll(Document):
 
+
 	def get_emp_list(self):
 		"""
 			Returns list of active employees based on selected criteria
@@ -18,14 +19,22 @@ class ProcessPayroll(Document):
 		cond = self.get_filter_condition()
 		cond += self.get_joining_releiving_condition()
 
+		sal_struct = frappe.db.sql("""
+				select name from `tabSalary Structure`
+				where docstatus != 2 and
+				ifnull(salary_slip_based_on_timesheet,0) = 0""")
+
+		if sal_struct:
+			cond += "and t2.parent IN %(sal_struct)s "
+
 		emp_list = frappe.db.sql("""
 			select t1.name
-			from `tabEmployee` t1, `tabSalary Structure` t2
-			where t1.docstatus!=2 and t2.docstatus != 2 and 
-			ifnull(t2.salary_slip_based_on_timesheet,0) = 0 and t1.name = t2.employee
-		%s """% cond)
+			from `tabEmployee` t1, `tabSalary Structure Employee` t2
+			where t1.docstatus!=2 and t1.name = t2.employee
+		%s """% cond, {"sal_struct": sal_struct})
 
 		return emp_list
+
 
 	def get_filter_condition(self):
 		self.check_mandatory()
@@ -56,6 +65,8 @@ class ProcessPayroll(Document):
 		"""
 			Creates salary slip for selected employees if already not created
 		"""
+
+		self.check_permission('write')
 
 		emp_list = self.get_emp_list()
 		ss_list = []
@@ -102,6 +113,8 @@ class ProcessPayroll(Document):
 		"""
 			Submit all salary slips based on selected criteria
 		"""
+		self.check_permission('write')
+
 		ss_list = self.get_sal_slip_list()
 		not_submitted_ss = []
 		for ss in ss_list:
@@ -159,6 +172,8 @@ class ProcessPayroll(Document):
 
 
 	def make_journal_entry(self, salary_account = None):
+		self.check_permission('write')
+
 		amount = self.get_total_salary()
 		default_bank_account = frappe.db.get_value("Company", self.company,
 			"default_bank_account")
