@@ -222,7 +222,8 @@ def get_price_list_rate(args, item_doc, out):
 		# insert in database
 		if not price_list_rate:
 			if args.price_list and args.rate:
-				insert_item_price(args)
+#				insert_item_price(args)      # Commented by Amitha
+				pass						 # Added by Amitha
 			return {}
 
 		out.price_list_rate = flt(price_list_rate) * flt(args.plc_conversion_rate) \
