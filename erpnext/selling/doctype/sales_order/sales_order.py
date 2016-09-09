@@ -45,6 +45,10 @@ class SalesOrder(SellingController):
 
 		if not self.billing_status: self.billing_status = 'Not Billed'
 		if not self.delivery_status: self.delivery_status = 'Not Delivered'
+		
+	#	self.rounded_total = round(self.net_total,-2)
+		self.rounded_total = frappe.utils.data.rounded (self.net_total, -2)
+		self.in_words = frappe.utils.data.money_in_words(self.rounded_total)
 
 	def validate_mandatory(self):
 		# validate transaction date v/s delivery date
