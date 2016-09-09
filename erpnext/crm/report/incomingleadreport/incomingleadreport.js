@@ -3,6 +3,12 @@
 
 frappe.query_reports["IncomingLeadReport"] = {
 	"filters": [
-
+		{
+			"fieldname":"contact_by",
+			"label": "Assigned Salesman",
+			"fieldtype": "Link",
+			"options": "Sales Partner",
+			"reqd": 0
+		},
 	]
 }
