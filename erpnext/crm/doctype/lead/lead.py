@@ -71,6 +71,7 @@ class Lead(SellingController):
 			"enquiry_type":"Sales",
 			"company":self.company,
 			"customer_name":self.lead_name,
+			"title":self.lead_name,
 			"contact_by":self.contact_by,			
 			"with_items":0,			
 			"contact_date":self.contact_date			
