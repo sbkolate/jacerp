@@ -93,7 +93,8 @@ class Opportunity(TransactionBase):
 			self.customer_name = frappe.db.get_value("Customer", self.customer, "customer_name")
 		elif self.lead:
 			lead_name, company_name = frappe.db.get_value("Lead", self.lead, ["lead_name", "company_name"])
-			self.customer_name = company_name or lead_name
+#			self.customer_name = company_name or lead_name
+			self.customer_name = lead_name
 
 	def get_cust_address(self,name):
 		details = frappe.db.sql("""select customer_name, address, territory, customer_group
