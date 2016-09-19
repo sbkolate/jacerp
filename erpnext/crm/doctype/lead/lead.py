@@ -45,24 +45,28 @@ class Lead(SellingController):
 				# Lead Owner cannot be same as the Lead
 				self.lead_owner = None
 
-			self.image = has_gravatar(self.email_id)
-		if self.contact_by :			
-			self.make_lead_to_opportunity()
+			self.image = has_gravatar(self.email_id)		
 
 	def on_update(self):
-		self.add_calendar_event()
+		self.add_calendar_event()		
+			
+		if self.contact_by :
+			if cint(self.get("__islocal")):
+				frappe.throw(_("Save the Document before assign 'Next Contact By'"))
+			else:
+				self.make_lead_to_opportunity()
 		
 
 	def make_lead_to_opportunity(self): 		
-		oppor = frappe.db.get_values("Opportunity",{"lead":self.name,"customer_name":self.lead_name},"name")
+		oppor = frappe.db.get_values("Opportunity",{"lead":self.name,"customer_name":self.lead_name},"name") 
 		if not oppor:			
 			doc_lead_opportunity = frappe.new_doc("Opportunity") 			
 		else:				
-			doc_lead_opportunity = frappe.get_doc("Opportunity", {"lead":self.name})			
+			doc_lead_opportunity = frappe.get_doc("Opportunity", {"lead":self.name})					
 		
 		doc_lead_opportunity.update({ 	
 			"lead":self.name,
-			"customer_name":self.name,
+			"customer_name":self.lead_name,
 			"enquiry_from":"Lead",
 			"status":"Open", 
 			"enquiry_type":"Sales",
