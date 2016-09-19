@@ -65,16 +65,14 @@ class Lead(SellingController):
 			doc_lead_opportunity = frappe.get_doc("Opportunity", {"lead":self.name})					
 		
 		doc_lead_opportunity.update({ 	
-			"lead":self.name,
-			"customer_name":self.lead_name,
+			"lead":self.name,			
 			"enquiry_from":"Lead",
 			"status":"Open", 
 			"enquiry_type":"Sales",
 			"company":self.company,
 			"customer_name":self.lead_name,
 			"contact_by":self.contact_by,			
-			"with_items":0,
-			"contact_display":self.lead_name,
+			"with_items":0,			
 			"contact_date":self.contact_date			
 			})
 		doc_lead_opportunity.save()
