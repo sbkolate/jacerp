@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
+from frappe import _, msgprint
 from frappe.utils import cstr, validate_email_add, cint, comma_and, has_gravatar
 from frappe import session
 from frappe.model.mapper import get_mapped_doc
@@ -23,7 +23,7 @@ class Lead(SellingController):
 		self.get("__onload").is_customer = customer
 		load_address_and_contact(self, "lead")
 
-	def validate(self):
+	def validate(self):		
 		self._prev = frappe._dict({
 			"contact_date": frappe.db.get_value("Lead", self.name, "contact_date") if \
 				(not cint(self.get("__islocal"))) else None,
@@ -46,11 +46,12 @@ class Lead(SellingController):
 				self.lead_owner = None
 
 			self.image = has_gravatar(self.email_id)
+		if self.contact_by :			
+			self.make_lead_to_opportunity()
 
 	def on_update(self):
 		self.add_calendar_event()
-		if self.contact_by :			
-			self.make_lead_to_opportunity()
+		
 
 	def make_lead_to_opportunity(self): 		
 		oppor = frappe.db.get_values("Opportunity",{"lead":self.name,"customer_name":self.lead_name},"name")
@@ -58,8 +59,10 @@ class Lead(SellingController):
 			doc_lead_opportunity = frappe.new_doc("Opportunity") 			
 		else:				
 			doc_lead_opportunity = frappe.get_doc("Opportunity", {"lead":self.name})			
+		
 		doc_lead_opportunity.update({ 	
 			"lead":self.name,
+			"customer_name":self.name,
 			"enquiry_from":"Lead",
 			"status":"Open", 
 			"enquiry_type":"Sales",
