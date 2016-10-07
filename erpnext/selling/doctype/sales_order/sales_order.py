@@ -222,6 +222,8 @@ class SalesOrder(SellingController):
 			"name":self.suggest_project_name(),
 	#		"project":self.project_name,
 			"status": "Open",
+			"expected_start_date":self.transaction_date,
+			"expected_end_date":self.delivery_date,
 			"project_type": "Internal",
 			"is_active":"Yes",
 			"priority":"Medium",

@@ -50,6 +50,9 @@ frappe.ui.form.on("Project", {
 			}
 
 			frm.trigger('show_dashboard');
+			
+	//		cur_frm.set_df_property("customer", "read_only", frm.status == "Open");
+
 		}
 	},
 	tasks_refresh: function(frm) {
@@ -98,3 +101,32 @@ frappe.ui.form.on("Project Task", {
 	},
 });
 
+frappe.ui.form.on("Project Task", "rail_sft", function(frm, cdt, cdn) //Created by Amitha M.D.
+{	
+	item = locals[cdt][cdn];
+	if(item.deck_sft!=undefined){			
+		item = locals[cdt][cdn];   
+		var decksft= flt(item.deck_sft);
+		var railsft= flt(item.rail_sft);
+		total_qty = decksft+railsft;
+	//	item.qty = total_qty;	
+		item.total_sft=total_qty;	
+		cur_frm.refresh_fields();
+	}
+	
+})
+
+frappe.ui.form.on("Project Task", "deck_sft", function(frm, cdt, cdn) //Created by Amitha M.D.
+{
+	item = locals[cdt][cdn];
+	if(item.rail_sft!=undefined){			
+		item = locals[cdt][cdn];   
+		var decksft= flt(item.deck_sft);
+		var railsft= flt(item.rail_sft);
+		total_qty = decksft+railsft;
+//		item.qty = total_qty;	
+		item.total_sft=total_qty;	
+		cur_frm.refresh_fields();
+	}
+	
+})

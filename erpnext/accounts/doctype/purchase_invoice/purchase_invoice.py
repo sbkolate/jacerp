@@ -264,6 +264,8 @@ class PurchaseInvoice(BuyingController):
 		self.check_prev_docstatus()
 		self.update_status_updater_args()
 
+		
+		
 		frappe.get_doc('Authorization Control').validate_approving_authority(self.doctype,
 			self.company, self.base_grand_total)
 
@@ -282,7 +284,7 @@ class PurchaseInvoice(BuyingController):
 
 		# this sequence because outstanding may get -negative
 		self.make_gl_entries()
-
+		
 		self.update_project()
 		self.update_fixed_asset()
 
@@ -597,8 +599,10 @@ class PurchaseInvoice(BuyingController):
 				project = frappe.get_doc("Project", d.project)
 				project.flags.dont_sync_tasks = True
 				project.update_purchase_costing()
-				project.save()
+			
+				project.save()				
 				project_list.append(d.project)
+				
 
 	def validate_supplier_invoice(self):
 		if self.bill_date:

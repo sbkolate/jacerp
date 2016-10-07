@@ -46,22 +46,78 @@ class Project(Document):
 				"start_date": task.exp_start_date,
 				"end_date": task.exp_end_date,
 				"description": task.description,
-				"task_id": task.name
+				"supplier":task.supplier,
+				"task_id": task.name,
+				"purchase_cost":frappe.db.get_value("Purchase Invoice",{"Project":self.name,"supplier":task.supplier},"total")
 			})
 
 	def get_tasks(self):
 		return frappe.get_all("Task", "*", {"project": self.name}, order_by="exp_start_date asc")
 		
 	def get_purchase_orders(self):		
-		return frappe.get_all("Purchase Order", "*", {"project": self.name})	
+		return frappe.get_all("Purchase Order", "*", {"project": self.name})
+	
+	def get_purchase_invoices(self):		
+		return frappe.get_all("Purchase Invoice", "*", {"project": self.name})	
 
 	def validate(self):
 		self.validate_dates()
-		self.create_po_if_supplier_exists()
+	
+#		self.create_purchase_invoice_if_supplier_exists()	
+					
+		self.sync_tasks()
+		self.tasks = []
+
+	#	self.create_po_if_supplier_exists()
+	#	self.make_pi()
+	
+	
+	def make_pi(self):
+		for t in self.project_subcontractors:	
+			pi_item = []
+			if t.pi_id:
+				new_pi= frappe.get_doc("Purchase Invoive", {"name":t.pi_id})
+			else:
+				new_pi = frappe.new_doc("Purchase Invoice")
+				new_pi.name = self.name	
+			pi_item.append({
+				"item_code": t.service_code,
+				"item_name":t.service_name,
+				"deck_color":t.deck_color,
+				"rail_color":t.rail_color,
+				"board_replacement":t.board_replacement,
+				"custom":t.custom,
+				"deck_sft":t.deck_sft,
+				"rail_sft":t.rail_sft,
+				"qty":t.total_sft,
+				"schedule_date":date.today(),
+				"description":t.service_name,
+		#		"qty":1,
+				"uom": "SFT",
+				"project":self.name,
+				"pi_id":t.pi_id,
+				"conversion_factor":1 })
+			new_pi.update({
+				"company":self.company,				
+				"supplier":t.supplier,
+		#		"customer":self.customer,
+				"transaction_date":date.today(),
+				"project":self.name,
+				"items":pi_item,
+				"ignore_pricing_rule": "Yes"
+			})	
+#			frappe.throw(_(t.supplier))	
+			new_pi.flags.ignore_links = True
+			new_pi.flags.from_project = True
+			new_pi.flags.ignore_feed = True
+			new_pi.save(ignore_permissions = True)
+			
+	
 		
 	def create_po_if_supplier_exists(self):
 		subcontract_names = []	
 		suppliers=[]
+		
 		for row in self.get("project_subcontractors"):			
 			if row.supplier:
 				suppliers.append(row.supplier)		
@@ -74,13 +130,11 @@ class Project(Document):
 #				frappe.msgprint(_(t))					
 				if(t.supplier and sup == t.supplier):
 					if t.pi_id:
+						frappe.throw(_(t.pi_id))
 						new_pi= frappe.get_doc("Purchase Invoive", {"name":t.pi_id})
 					else:
 						new_pi = frappe.new_doc("Purchase Invoice")
 						new_pi.name = self.name	
-						
-					
-					
 					pi_item.append({
 						"item_code": t.service_code,
 						"item_name":t.service_name,
@@ -103,6 +157,70 @@ class Project(Document):
 			new_pi.update({
 				"company":self.company,				
 				"supplier":sup,
+			#	"customer":self.customer,
+				"transaction_date":date.today(),
+				"project":self.name,
+				"items":pi_item,
+				"ignore_pricing_rule": "Yes"
+			})	
+	#		frappe.throw(_(t.supplier))	
+			new_pi.flags.ignore_links = True
+			new_pi.flags.from_project = True
+			new_pi.flags.ignore_feed = True
+			new_pi.save(ignore_permissions = True)
+			subcontract_names.append(new_pi.name)	
+			t.pi_id = new_pi.name				
+		
+		for t in frappe.get_all("Purchase Invoice", "name", {"project": self.name, "name": ("not in", subcontract_names)}):
+			if t.docstatus==0:
+				frappe.delete_doc("Purchase Invoice", str(t.name).encode('ascii','ignore'))		
+			
+			
+			
+	def create_purchase_invoice_if_supplier_exists(self):
+		subcontract_names = []	
+	#	suppliers=[]
+		
+	#	for row in self.get("tasks"):			
+	#		if row.supplier:				
+	#			suppliers.append(row.supplier)	
+					
+	#	unique_list_of_suppliers=list(set(suppliers))
+		
+	#	for sup in unique_list_of_suppliers:	
+	#		pi_item = []
+	#		t=0
+		for t in self.tasks:	
+			pi_item = []
+#				frappe.msgprint(_(t))					
+#				if(t.supplier and sup == t.supplier):
+			if t.pi_id:
+				new_pi= frappe.get_doc("Purchase Invoive", {"name":t.pi_id})
+			else:
+				new_pi = frappe.new_doc("Purchase Invoice")
+				new_pi.name = self.name	
+			pi_item.append({
+				"item_code": t.title,
+				"item_name":t.service_name,
+				"deck_color":t.deck_color,
+				"rail_color":t.rail_color,
+				"board_replacement":t.board_replacement,
+				"description":t.description,
+				"deck_sft":t.deck_sft,
+				"rail_sft":t.rail_sft,
+				"qty":t.total_sft,
+				"schedule_date":date.today(),
+				"description":t.service_name,
+				#		"qty":1,
+				"uom": "SFT",
+				"project":self.name,
+				"pi_id":t.pi_id,
+				"conversion_factor":1 })
+	#			else:
+	#				pass
+			new_pi.update({
+				"company":self.company,				
+				"supplier":t.supplier,
 		#		"customer":self.customer,
 				"transaction_date":date.today(),
 				"project":self.name,
@@ -114,10 +232,14 @@ class Project(Document):
 			new_pi.flags.from_project = True
 			new_pi.flags.ignore_feed = True
 			new_pi.save(ignore_permissions = True)
-			subcontract_names.append(new_pi.name)					
+			subcontract_names.append(new_pi.name)		
+			t.pi_id = frappe.db.get_value("Purchase Invoice",{"name":self.name},"name")	
+			frappe.throw(_(t.pi_id))	
 		
 		for t in frappe.get_all("Purchase Invoice", "name", {"project": self.name, "name": ("not in", subcontract_names)}):
-			frappe.delete_doc("Purchase Invoice", str(t.name).encode('ascii','ignore'))		
+	#		frappe.delete_doc("Purchase Invoice",str(t.name).encode('ascii','ignore'))		
+			frappe.msgprint(_(t.name))
+	
 	
 	def validate_dates(self):
 		if self.expected_start_date and self.expected_end_date:
@@ -142,6 +264,8 @@ class Project(Document):
 				"exp_start_date": t.start_date,
 				"exp_end_date": t.end_date,
 				"description": t.description,
+				"supplier":t.supplier,
+				"purchase_cost":t.purchase_cost
 			})
 
 			task.flags.ignore_links = True
