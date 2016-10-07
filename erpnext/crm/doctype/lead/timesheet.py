@@ -319,14 +319,8 @@ def get_events(start, end, filters=None):
 	conditions = get_conditions(filters)
 	return frappe.db.sql("""select `tabTimesheet Detail`.name as name, `tabTimesheet Detail`.parent as parent,
 		from_time, hours, activity_type, project, to_time from `tabTimesheet Detail`, 
-<<<<<<< HEAD
-		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and 
-		(from_time between %(start)s and %(end)s) {conditions}
-		{match_cond}""".format(conditions=conditions, match_cond = get_match_cond('Timesheet')),
-=======
 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and `tabTimesheet`.docstatus < 2 and
 		(from_time between %(start)s and %(end)s) {conditions}""".format(conditions=conditions),
->>>>>>> c44431d39d4d97c2cf230e552e41e0c9525d0d6f
 		{
 			"start": start,
 			"end": end
@@ -340,3 +334,12 @@ def get_conditions(filters):
 			conditions.append("`%s`.%s = '%s'"%(abbr.get(key), key, filters.get(key)))
 
 	return " and {}".format(" and ".join(conditions)) if conditions else ""
+
+# <<<<<<< HEAD
+# 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and 
+# 		(from_time between %(start)s and %(end)s) {conditions}
+# 		{match_cond}""".format(conditions=conditions, match_cond = get_match_cond('Timesheet')),
+# =======
+# 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and `tabTimesheet`.docstatus < 2 and
+# 		(from_time between %(start)s and %(end)s) {conditions}""".format(conditions=conditions),
+# >>>>>>> c44431d39d4d97c2cf230e552e41e0c9525d0d6f
