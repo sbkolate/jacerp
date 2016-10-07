@@ -318,10 +318,11 @@ frappe.ui.form.on("Sales Order Item", "amount", function(frm, cdt, cdn) //Create
 			
 			
 //		rounded_total_amount =  Math.round(totals * 100) /100;
-		rounded_total_amount = (Math.round(totals * 10) / 10).toFixed(2)
+//		rounded_total_amount = (Math.round(totals * 10) / 10).toFixed(2)
+		discount = frm.doc.total - frm.doc.rounded_total;
 		
 		cur_frm.set_value("rounded_total",rounded_total_amount);
-		
+//		cur_frm.set_value("discount_amount",discount);
 		cur_frm.refresh_fields();
 		//frm.refresh();		
 	}	
