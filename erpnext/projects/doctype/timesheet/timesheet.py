@@ -8,6 +8,7 @@ from frappe import _
 
 import json
 from datetime import timedelta
+from erpnext.controllers.queries import get_match_cond
 from frappe.utils import flt, time_diff_in_hours, get_datetime, getdate, cint, get_datetime_str
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
@@ -20,11 +21,16 @@ class OverProductionLoggedError(frappe.ValidationError): pass
 
 class Timesheet(Document):
 	def validate(self):
+		self.set_employee_name()
 		self.set_status()
 		self.validate_dates()
 		self.validate_time_logs()
 		self.update_cost()
 		self.calculate_total_amounts()
+
+	def set_employee_name(self):
+		if self.employee and not self.employee_name:
+			self.employee_name = frappe.db.get_value('Employee', self.employee, 'employee_name')
 
 	def calculate_total_amounts(self):
 		self.total_hours = 0.0
@@ -147,7 +153,7 @@ class Timesheet(Document):
 
 	def validate_dates(self):
 		for data in self.time_logs:
-			if time_diff_in_hours(data.to_time, data.from_time) < 0:
+			if data.from_time and data.to_time and time_diff_in_hours(data.to_time, data.from_time) < 0:
 				frappe.throw(_("To date cannot be before from date"))
 
 	def validate_time_logs(self):
@@ -313,8 +319,9 @@ def get_events(start, end, filters=None):
 	conditions = get_conditions(filters)
 	return frappe.db.sql("""select `tabTimesheet Detail`.name as name, `tabTimesheet Detail`.parent as parent,
 		from_time, hours, activity_type, project, to_time from `tabTimesheet Detail`, 
-		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and `tabTimesheet`.docstatus < 2 and
-		(from_time between %(start)s and %(end)s) {conditions}""".format(conditions=conditions),
+		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and 
+		(from_time between %(start)s and %(end)s) {conditions}
+		{match_cond}""".format(conditions=conditions, match_cond = get_match_cond('Timesheet')),
 		{
 			"start": start,
 			"end": end
@@ -328,3 +335,14 @@ def get_conditions(filters):
 			conditions.append("`%s`.%s = '%s'"%(abbr.get(key), key, filters.get(key)))
 
 	return " and {}".format(" and ".join(conditions)) if conditions else ""
+
+
+
+# <<<<<<< HEAD
+# 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and `tabTimesheet`.docstatus < 2 and
+# 		(from_time between %(start)s and %(end)s) {conditions}""".format(conditions=conditions),
+# =======
+# 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and 
+# 		(from_time between %(start)s and %(end)s) {conditions}
+# 		{match_cond}""".format(conditions=conditions, match_cond = get_match_cond('Timesheet')),
+# >>>>>>> 8fa2a0402451f7832d1fa219d08f57a5a317548f

@@ -58,7 +58,7 @@ class PurchaseInvoice(BuyingController):
 		self.check_for_closed_status()
 		self.validate_with_previous_doc()
 		self.validate_uom_is_integer("uom", "qty")
-		self.set_expense_account()
+		self.set_expense_account(for_validate=True)
 		self.set_against_expense_account()
 		self.validate_write_off_account()
 		self.validate_multiple_billing("Purchase Receipt", "pr_detail", "amount", "items")
@@ -155,7 +155,7 @@ class PurchaseInvoice(BuyingController):
 
 		super(PurchaseInvoice, self).validate_warehouse()
 
-	def set_expense_account(self):
+	def set_expense_account(self, for_validate=False):
 		auto_accounting_for_stock = cint(frappe.defaults.get_global_default("auto_accounting_for_stock"))
 
 		if auto_accounting_for_stock:
@@ -181,7 +181,7 @@ class PurchaseInvoice(BuyingController):
 				else:
 					item.expense_account = stock_not_billed_account
 
-			elif not item.expense_account:
+			elif not item.expense_account and for_validate:
 				throw(_("Expense account is mandatory for item {0}").format(item.item_code or item.item_name))
 
 	def set_against_expense_account(self):
@@ -304,6 +304,9 @@ class PurchaseInvoice(BuyingController):
 				asset.save()
 
 	def make_gl_entries(self, repost_future_gle=True):
+		if not self.grand_total:
+			return
+		
 		self.auto_accounting_for_stock = \
 			cint(frappe.defaults.get_global_default("auto_accounting_for_stock"))
 
@@ -371,7 +374,7 @@ class PurchaseInvoice(BuyingController):
 			if flt(item.base_net_amount):
 				account_currency = get_account_currency(item.expense_account)
 
-				if self.update_stock and self.auto_accounting_for_stock:
+				if self.update_stock and self.auto_accounting_for_stock and item.item_code in stock_items:
 					val_rate_db_precision = 6 if cint(item.precision("valuation_rate")) <= 6 else 9
 
 					# warehouse account
