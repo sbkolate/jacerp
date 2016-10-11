@@ -33,7 +33,7 @@ frappe.ui.form.on("Project", {
 			return {
 				filters: filters
 			}
-		});
+		});		
 	},
 	refresh: function(frm) {
 		if(frm.doc.__islocal) {
@@ -84,8 +84,22 @@ frappe.ui.form.on("Project", {
 					{'activity_type': activity_type, 'project': frm.doc.name});
 			});
 		}
-	}
+	}	
 });
+
+//frappe.ui.form.on("Project", {
+//	view_expenses: function() {
+//			var doc = frappe.get_doc(doctype, name);
+//			if(!frm.doc.__islocal) {
+//				frappe.set_route("Form", "Expense Claim", doc.task_id);
+			//	frappe.route_options = {"project": doc.project, "task": "WRS"}
+			//	frappe.set_route("List", "Expense Claim");
+//			}
+//			else {
+//				msgprint(__("Save the document first."));
+//		}
+//	}
+//});
 
 frappe.ui.form.on("Project Task", {
 	edit_task: function(frm, doctype, name) {

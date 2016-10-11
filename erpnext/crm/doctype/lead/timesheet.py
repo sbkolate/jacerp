@@ -153,7 +153,7 @@ class Timesheet(Document):
 
 	def validate_dates(self):
 		for data in self.time_logs:
-			if data.from_time and data.to_time and time_diff_in_hours(data.to_time, data.from_time) < 0:
+			if time_diff_in_hours(data.to_time, data.from_time) < 0:
 				frappe.throw(_("To date cannot be before from date"))
 
 	def validate_time_logs(self):
@@ -319,9 +319,8 @@ def get_events(start, end, filters=None):
 	conditions = get_conditions(filters)
 	return frappe.db.sql("""select `tabTimesheet Detail`.name as name, `tabTimesheet Detail`.parent as parent,
 		from_time, hours, activity_type, project, to_time from `tabTimesheet Detail`, 
-		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and 
-		(from_time between %(start)s and %(end)s) {conditions}
-		{match_cond}""".format(conditions=conditions, match_cond = get_match_cond('Timesheet')),
+		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and `tabTimesheet`.docstatus < 2 and
+		(from_time between %(start)s and %(end)s) {conditions}""".format(conditions=conditions),
 		{
 			"start": start,
 			"end": end
@@ -336,13 +335,11 @@ def get_conditions(filters):
 
 	return " and {}".format(" and ".join(conditions)) if conditions else ""
 
-
-
 # <<<<<<< HEAD
-# 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and `tabTimesheet`.docstatus < 2 and
-# 		(from_time between %(start)s and %(end)s) {conditions}""".format(conditions=conditions),
-# =======
 # 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and 
 # 		(from_time between %(start)s and %(end)s) {conditions}
 # 		{match_cond}""".format(conditions=conditions, match_cond = get_match_cond('Timesheet')),
-# >>>>>>> 8fa2a0402451f7832d1fa219d08f57a5a317548f
+# =======
+# 		`tabTimesheet` where `tabTimesheet Detail`.parent = `tabTimesheet`.name and `tabTimesheet`.docstatus < 2 and
+# 		(from_time between %(start)s and %(end)s) {conditions}""".format(conditions=conditions),
+# >>>>>>> c44431d39d4d97c2cf230e552e41e0c9525d0d6f

@@ -40,14 +40,6 @@ erpnext.stock.StockEntry = erpnext.stock.StockController.extend({
 					}
 				}
 			}
-			this.frm.set_query("difference_account", function() {
-				return {
-					"filters": {
-						"company": me.frm.doc.company,
-						"is_group": 0
-					}
-				};
-			});
 		}
 	},
 
@@ -356,6 +348,7 @@ cur_frm.fields_dict['production_order'].get_query = function(doc) {
 }
 
 cur_frm.cscript.purpose = function(doc, cdt, cdn) {
+	cur_frm.fields_dict.items.grid.refresh();
 	cur_frm.cscript.toggle_related_fields(doc);
 }
 

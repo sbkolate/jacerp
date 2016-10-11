@@ -48,7 +48,6 @@ class Project(Document):
 				"description": task.description,
 				"supplier":task.supplier,
 				"task_id": task.name,
-				"pi_id":task.pi_id,
 				"purchase_cost":frappe.db.get_value("Purchase Invoice",{"Project":self.name,"supplier":task.supplier},"total")
 			})
 
@@ -62,12 +61,12 @@ class Project(Document):
 		return frappe.get_all("Purchase Invoice", "*", {"project": self.name})	
 
 	def validate(self):
-		self.validate_dates()	
-		
-#		self.create_purchase_invoice_if_supplier_exists()				
+		self.validate_dates()
+	
+#		self.create_purchase_invoice_if_supplier_exists()	
+					
 		self.sync_tasks()
-		self.tasks = []	
-
+		self.tasks = []
 
 	#	self.create_po_if_supplier_exists()
 	#	self.make_pi()
@@ -131,7 +130,7 @@ class Project(Document):
 #				frappe.msgprint(_(t))					
 				if(t.supplier and sup == t.supplier):
 					if t.pi_id:
-#						frappe.throw(_(t.pi_id))
+						frappe.throw(_(t.pi_id))
 						new_pi= frappe.get_doc("Purchase Invoive", {"name":t.pi_id})
 					else:
 						new_pi = frappe.new_doc("Purchase Invoice")
@@ -180,7 +179,6 @@ class Project(Document):
 			
 	def create_purchase_invoice_if_supplier_exists(self):
 		subcontract_names = []	
-	
 	#	suppliers=[]
 		
 	#	for row in self.get("tasks"):			
@@ -192,17 +190,15 @@ class Project(Document):
 	#	for sup in unique_list_of_suppliers:	
 	#		pi_item = []
 	#		t=0
-		for t in self.tasks:				
+		for t in self.tasks:	
 			pi_item = []
 #				frappe.msgprint(_(t))					
 #				if(t.supplier and sup == t.supplier):
-			
 			if t.pi_id:
 				new_pi= frappe.get_doc("Purchase Invoive", {"name":t.pi_id})
 			else:
 				new_pi = frappe.new_doc("Purchase Invoice")
 				new_pi.name = self.name	
-				frappe.msgprint(_("Inside P IS"))	
 			pi_item.append({
 				"item_code": t.title,
 				"item_name":t.service_name,
@@ -237,8 +233,8 @@ class Project(Document):
 			new_pi.flags.ignore_feed = True
 			new_pi.save(ignore_permissions = True)
 			subcontract_names.append(new_pi.name)		
-			t.pi_id = frappe.db.get_value("Purchase Invoice",{"name":self.name},"project")	
-			frappe.msgprint(_(self.name))	
+			t.pi_id = frappe.db.get_value("Purchase Invoice",{"name":self.name},"name")	
+			frappe.throw(_(t.pi_id))	
 		
 		for t in frappe.get_all("Purchase Invoice", "name", {"project": self.name, "name": ("not in", subcontract_names)}):
 	#		frappe.delete_doc("Purchase Invoice",str(t.name).encode('ascii','ignore'))		
@@ -270,8 +266,8 @@ class Project(Document):
 				"description": t.description,
 				"supplier":t.supplier,
 				"purchase_cost":t.purchase_cost
-			})			
-		
+			})
+
 			task.flags.ignore_links = True
 			task.flags.from_project = True
 			task.flags.ignore_feed = True
@@ -284,7 +280,7 @@ class Project(Document):
 
 		self.update_percent_complete()
 		self.update_costing()
-
+	
 	def update_project(self):
 		self.update_percent_complete()
 		self.update_costing()

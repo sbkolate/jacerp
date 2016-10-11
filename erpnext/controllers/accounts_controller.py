@@ -26,6 +26,9 @@ class AccountsController(TransactionBase):
 
 		return self.__company_currency
 
+	def onload(self):
+		self.get("__onload").make_payment_via_journal_entry = frappe.db.get_single_value('Accounts Settings', 'make_payment_via_journal_entry')
+
 	def validate(self):
 		if self.get("_action") and self._action != "update_after_submit":
 			self.set_missing_values(for_validate=True)
@@ -144,7 +147,7 @@ class AccountsController(TransactionBase):
 				self.conversion_rate = get_exchange_rate(self.currency,
 					self.company_currency)
 
-	def set_missing_item_details(self):
+	def set_missing_item_details(self, for_validate=False):
 		"""set missing item values"""
 		from erpnext.stock.get_item_details import get_item_details
 
@@ -196,7 +199,7 @@ class AccountsController(TransactionBase):
 								(1.0 - (flt(item.discount_percentage) / 100.0)), item.precision("rate"))
 
 			if self.doctype == "Purchase Invoice":
-				self.set_expense_account()
+				self.set_expense_account(for_validate)
 
 	def set_taxes(self):
 		if not self.meta.get_field("taxes"):
@@ -662,7 +665,7 @@ def get_advance_journal_entries(party_type, party, party_account, amount_field,
 			.format(order_doctype, order_condition))
 
 	reference_condition = " and (" + " or ".join(conditions) + ")" if conditions else ""
-
+	
 	journal_entries = frappe.db.sql("""
 		select
 			"Journal Entry" as reference_type, t1.name as reference_name,
@@ -674,8 +677,7 @@ def get_advance_journal_entries(party_type, party, party_account, amount_field,
 			t1.name = t2.parent and t2.account = %s
 			and t2.party_type = %s and t2.party = %s
 			and t2.is_advance = 'Yes' and t1.docstatus = 1
-			and {1} > 0
-			and (ifnull(t2.reference_name, '')='' {2})
+			and {1} > 0 {2}
 		order by t1.posting_date""".format(amount_field, dr_or_cr, reference_condition),
 		[party_account, party_type, party] + order_list, as_dict=1)
 
