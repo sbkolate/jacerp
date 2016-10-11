@@ -262,9 +262,7 @@ class PurchaseInvoice(BuyingController):
 
 	def on_submit(self):
 		self.check_prev_docstatus()
-		self.update_status_updater_args()
-
-		
+		self.update_status_updater_args()		
 		
 		frappe.get_doc('Authorization Control').validate_approving_authority(self.doctype,
 			self.company, self.base_grand_total)
