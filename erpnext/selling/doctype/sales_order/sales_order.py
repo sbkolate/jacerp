@@ -198,9 +198,14 @@ class SalesOrder(SellingController):
 	#Automatically create cost center when Sales Order is created               # AMITHA M D
 	def create_cost_center_from_sales_order(self):	
 		project_name = self.suggest_project_name()
-	#	suffix = " - " + frappe.db.get_value("Company", self.company, "abbr")
+		suffix = " - " + frappe.db.get_value("Company", self.company, "abbr")
 		cost_center= frappe.new_doc("Cost Center") 	
-		
+	#	count= frappe.db.sql("select count(*) from `tabCost Center` where name =%s",(project_name+suffix))
+		count = frappe.db.count("Cost Center" , {"name":project_name+suffix})
+		frappe.msgprint(_(count))
+		if count == 1:
+			return frappe.db.get_value("Cost Center" , {"name":project_name+suffix},"name")			
+			
 		c = cost_center.update({ 	
 	#		"name": project_name + suffix,
 			"cost_center_name":project_name,	
