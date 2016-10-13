@@ -144,3 +144,25 @@ frappe.ui.form.on("Project Task", "deck_sft", function(frm, cdt, cdn) //Created 
 	}
 	
 })
+
+frappe.ui.form.on("Project Purchase Invoice", {
+	view_purchase_invoice: function(frm, doctype, name) {
+		var doc = frappe.get_doc(doctype, name);
+		if(doc.pi_id) {
+			frappe.set_route("Form", "Purchase Invoice", doc.pi_id);
+		} 
+		else {
+			msgprint(__("Save the document first."));
+		}
+//		var doc = frappe.new_doc("Form","Purchase Invoice");
+//		frappe.set_route("Form","Purchase Invoice");
+	}
+	
+});
+
+frappe.ui.form.on("Project Expense Claim", {
+	view_expense_claim: function(frm, doctype, name) {
+		new_doc("Expense Claim")
+	}
+	
+});

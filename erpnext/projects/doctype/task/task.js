@@ -20,13 +20,13 @@ frappe.ui.form.on("Task", {
 				frm.add_custom_button(__("Timesheet"), function() {
 					frappe.route_options = {"project": doc.project, "task": doc.name}
 					frappe.set_route("List", "Timesheet");
-				}, __("View"), true);
+				}); //, __("View"), true);
 			}
 			if(frappe.model.can_read("Expense Claim")) {
 				frm.add_custom_button(__("Expense Claims"), function() {
 					frappe.route_options = {"project": doc.project, "task": doc.name}
 					frappe.set_route("List", "Expense Claim");
-				}, __("View"), true);
+				} );// , __("View"), true);
 			}
 
 			if(frm.perm[0].write) {
