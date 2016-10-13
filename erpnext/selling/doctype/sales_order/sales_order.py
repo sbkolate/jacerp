@@ -164,8 +164,21 @@ class SalesOrder(SellingController):
 
 		self.update_prevdoc_status('submit')
 		
+		
+		cost_center_name = self.create_cost_center_from_sales_order()
+		
+#		frappe.throw(_(cost_center_name))
 		#Automatically create project when Sales Order is created     # AMITHA M D
-		self.create_project_from_sales_order()
+		project = self.create_project_from_sales_order(cost_center_name)
+		self.project = project
+		
+#		frappe.throw(_(self.project))
+		
+		
+#		self.project = frappe.db.sql("select name from `tabProject` where sales_order=%s",(self.name))
+#		frappe.msgprint(_(frappe.db.sql("select name from `tabProject` where sales_order=%s",(self.name))))
+		
+		
 		
 		#Update Opportunity Status if 'SO' is created from Opportunity    # AMITHA M D
 #		self.update_opportunity_status()
@@ -177,8 +190,43 @@ class SalesOrder(SellingController):
 #			frappe.db.sql("""update `tabOpportunity` set status = %s where name=%s""",("Sales Order",self.from_opportunity))
 			#frappe.msgprint(_("Updated Opportunity Status"))
 			
+	
+	
+	
+	
+	
+	#Automatically create cost center when Sales Order is created               # AMITHA M D
+	def create_cost_center_from_sales_order(self):	
+		project_name = self.suggest_project_name()
+	#	suffix = " - " + frappe.db.get_value("Company", self.company, "abbr")
+		cost_center= frappe.new_doc("Cost Center") 	
+		
+		c = cost_center.update({ 	
+	#		"name": project_name + suffix,
+			"cost_center_name":project_name,	
+			"company": self.company,
+			"is_group":0,
+			"old_parent":"ALLY HOMES - AH",
+			"project_type": "Internal",
+			"parent_cost_center":"ALLY HOMES - AH" })				
+		cost_center.save(ignore_permissions = True)
+		
+		return c.name
+		
+#		print "*"*150
+#		frappe.throw(_(c.name))
+#		print "*"*150
+	
+	
+	
+	
+	
+	
+	
 	#Automatically create project when Sales Order is created               # AMITHA M D
-	def create_project_from_sales_order(self):	
+	def create_project_from_sales_order(self,cost_center_name):	
+#		frappe.throw(_(frappe.db.get_value("Cost Center",{"cost_center_name":self.suggest_project_name},"name")))
+#		frappe.throw(_(cost_center_name))
 		if self.customer:	
 			cust=self.customer		
 #		for t in self.items:
@@ -194,33 +242,11 @@ class SalesOrder(SellingController):
 	#	for d in self.get("items"):
 	#		a.append(d.supplier_name)
 	#	b=set(a)
-	#	frappe.throw(_(b))
 				
-		for d in self.get("items"):
-			pro_subcontractor.append(	
-				{
-			#		"supplier": d.supplier_name,
-					"service_code":d.item_code,
-					"deck_color":d.deck_color,
-					"rail_color":d.rail_color,
-					"board_replacement":d.board_replacement,
-					"custom":d.custom,
-					"deck_sft":d.deck_sft,
-					"rail_sft":d.rail_sft,
-					"total_sft":d.qty
-				}		
-			)
-			tasks.append(
-				{
-					"title":d.item_code
-				}
-			)
-	#	frappe.throw(_(pro_subcontractor))
-		doc_project.update({ 	
-	#		"name":self.project_name,
+		
+		project = doc_project.update({ 	
 			"project_name": self.suggest_project_name(),
-			"name":self.suggest_project_name(),
-	#		"project":self.project_name,
+			#"name":self.suggest_project_name(),	
 			"status": "Open",
 			"expected_start_date":self.transaction_date,
 			"expected_end_date":self.delivery_date,
@@ -229,11 +255,29 @@ class SalesOrder(SellingController):
 			"priority":"Medium",
 			"customer": cust,
 			"sales_order":self.name,
-			"project_subcontractors":pro_subcontractor,
+#			"project_subcontractors":pro_subcontractor,
 			"tasks" :tasks,
-			"customer_type":"Individual"})		
-		doc_project.save()		
-		self.project = self.customer
+			"cost_center": cost_center_name,
+			"customer_type":"Individual"})				
+		doc_project.save(ignore_permissions = True)
+	#	frappe.throw(_(tasks[0]['rail_sft']))
+	
+		for d in self.get("items"):	
+			task = frappe.new_doc("Task")	
+			task.update({
+				"project":project.name,
+				"subject":d.item_code,
+				"service_name":d.item_name,
+				"deck_color":d.deck_color,
+				"rail_color":d.rail_color,
+				"board_replacement":d.board_replacement,
+				"custom":d.custom,
+				"deck_sft":d.deck_sft,
+				"rail_sft":d.rail_sft,
+				"total_sft":d.total_sft				
+			})	
+			task.save(ignore_permissions = True)	
+		return project.name	
 		
 	def suggest_project_name(self):
 		service_code=""
@@ -330,8 +374,8 @@ class SalesOrder(SellingController):
 				"reserved_qty": get_reserved_qty(item_code, warehouse)
 			})
 
-	def on_update(self):
-		pass
+	def on_update(self): pass		
+		
 
 	def before_update_after_submit(self):
 		self.validate_drop_ship()

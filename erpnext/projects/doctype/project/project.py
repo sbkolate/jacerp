@@ -16,16 +16,48 @@ class Project(Document):
 	def onload(self):
 		"""Load project tasks for quick view"""
 		if not self.get('__unsaved') and not self.get("tasks"):
-			self.load_tasks()
+			self.load_tasks()			
 
 		self.set_onload('activity_summary', frappe.db.sql('''select activity_type,
 			sum(hours) as total_hours
 			from `tabTimesheet Detail` where project=%s and docstatus < 2 group by activity_type
 			order by total_hours desc''', self.name, as_dict=True))
+			
+		self.load_purchase_invoices()
+		self.load_expense_claim()
 
 	def __setup__(self):
 		self.onload()
 		
+		
+		
+	def load_purchase_invoices(self):  #Amitha
+		self.purchase_invoices=[]
+		for invoice in self.get_purchase_invoices():
+			self.append("purchase_invoices", {
+				"supplier": invoice.supplier,
+				"grand_total":invoice.grand_total,
+				"pi_id":invoice.name,
+				"doc_status": "Draft" if invoice.docstatus == 0 else "Submitted" if invoice.docstatus == 1 else "Cancelled"
+				})
+		
+	def load_expense_claim(self):  #Amitha
+		self.expenses=[]
+		for exp in self.get_expenses_claimed():
+			self.append("expenses", {
+				"person":exp.employee,
+				"posting_date":exp.posting_date,
+				"sanctioned_amount":exp.total_sanctioned_amount,
+				"person_name":exp.employee_name,
+				"task":exp.task,
+				"approval_status":exp.approval_status,
+				"doc_status": "Draft" if exp.docstatus == 0 else "Submitted" if exp.docstatus == 1 else "Cancelled"
+				})
+		
+	
+	def get_expenses_claimed(self):   # Amitha
+		return frappe.get_all("Expense Claim", "*", {"project": self.name})	
+	
 		
 	def on_trash(self):
 		#checks Purchase Orders ( ie. Check Any Subcontractors for this Project)
@@ -47,12 +79,22 @@ class Project(Document):
 				"end_date": task.exp_end_date,
 				"description": task.description,
 				"supplier":task.supplier,
+				
+				"service_name":task.item_name,
+				"deck_color":task.deck_color,
+				"rail_color":task.rail_color,
+				"board_replacement":task.board_replacement,
+				"custom":task.custom,
+				"deck_sft":task.deck_sft,
+				"rail_sft":task.rail_sft,
+				"total_sft":task.total_sft,
+				
 				"task_id": task.name,
 				"pi_id":task.pi_id,
 				"purchase_cost":frappe.db.get_value("Purchase Invoice",{"Project":self.name,"supplier":task.supplier},"total")
 			})
 
-	def get_tasks(self):
+	def get_tasks(self):		
 		return frappe.get_all("Task", "*", {"project": self.name}, order_by="exp_start_date asc")
 		
 	def get_purchase_orders(self):		
