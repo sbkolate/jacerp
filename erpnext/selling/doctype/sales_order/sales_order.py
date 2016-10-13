@@ -202,7 +202,7 @@ class SalesOrder(SellingController):
 		cost_center= frappe.new_doc("Cost Center") 	
 	#	count= frappe.db.sql("select count(*) from `tabCost Center` where name =%s",(project_name+suffix))
 		count = frappe.db.count("Cost Center" , {"name":project_name+suffix})
-		frappe.msgprint(_(count))
+	#	frappe.msgprint(_(count))
 		if count == 1:
 			return frappe.db.get_value("Cost Center" , {"name":project_name+suffix},"name")			
 			
