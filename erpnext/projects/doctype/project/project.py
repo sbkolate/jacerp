@@ -72,6 +72,7 @@ class Project(Document):
 		"""Load `tasks` from the database"""
 		self.tasks = []
 		for task in self.get_tasks():
+#			frappe.msgprint(_(task.item_name))
 			self.append("tasks", {
 				"title": task.subject,
 				"status": task.status,
