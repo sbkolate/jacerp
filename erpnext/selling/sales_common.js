@@ -321,7 +321,7 @@ erpnext.selling.SellingController = erpnext.TransactionController.extend({
 		item = locals[cdt][cdn];
 		item.margin_type = "";
 		item.margin_rate_or_amount = 0.0;
-	//	cur_frm.refresh_fields();
+		cur_frm.refresh_fields();
 	},
 
 	margin_rate_or_amount: function(doc, cdt, cdn) {

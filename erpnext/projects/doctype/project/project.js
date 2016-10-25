@@ -139,6 +139,7 @@ frappe.ui.form.on("Project Task", "deck_sft", function(frm, cdt, cdn) //Created 
 		var railsft= flt(item.rail_sft);
 		total_qty = decksft+railsft;
 //		item.qty = total_qty;	
+
 		item.total_sft=total_qty;	
 		cur_frm.refresh_fields();
 	}

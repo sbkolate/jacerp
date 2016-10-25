@@ -274,6 +274,30 @@ frappe.ui.form.on("Sales Order Item", "deck_sft", function(frm, cdt, cdn) //Crea
 	
 })
 
+frappe.ui.form.on("Sales Order Item", "custom_amount", function(frm, cdt, cdn) //Created by Amitha M.D.
+{		
+	row = locals[cdt][cdn];
+	row.amount = row.custom_amount;	
+	
+	if(row.qty!=undefined){				
+		var area  = row.qty;
+		var total = row.custom_amount;	
+		row['rate'] = flt((total/area),2);
+	}
+	for(key in frm.doc.items)
+	{			
+//		var item = cur_frm.doc.items[key]	
+		if(key.custom_amount != undefined)
+		{
+			totals  = totals + key.custom_amount;				
+		}
+	}
+	cur_frm.set_value("total", totals);	
+	cur_frm.set_value("grand_total", totals);
+	cur_frm.refresh_fields();
+})
+
+
 frappe.ui.form.on("Sales Order Item", "amount", function(frm, cdt, cdn) //Created by Amitha M.D.
 {		
 	row = locals[cdt][cdn];
