@@ -454,6 +454,19 @@ def get_list_context(context=None):
 
 	return list_context
 
+def make_amount_constant(doc,method):
+	frappe.msgprint(_("I am from hook method"))
+	if doc.doctype == "Sales Order":
+		total = 0		
+		for d in doc.get("items"):
+			d.amount = d.custom_amount
+			total += d.custom_amount
+		doc.total = total
+		doc.grand_total = total
+
+
+
+
 @frappe.whitelist()
 def close_or_unclose_sales_orders(names, status):
 	if not frappe.has_permission("Sales Order", "write"):
