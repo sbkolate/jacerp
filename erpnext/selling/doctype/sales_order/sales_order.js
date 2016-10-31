@@ -12,8 +12,51 @@ frappe.ui.form.on("Sales Order", {
 		// formatter for material request item
 		frm.set_indicator_formatter('item_code',
 			function(doc) { return (doc.qty<=doc.delivered_qty) ? "green" : "orange" })
+	},
+	refresh:function(doc,dt,dn) {
+	//	alert("Refreshing");
+		totals=0;
+		
+		for(key in cur_frm.doc.items)
+		{			
+			var row = cur_frm.doc.items[key];
+			var area  = row.qty;
+			var total = row.custom_amount;	
+			row['rate'] = flt((total/area),2);
+			row.amount = row.custom_amount;
+			if(row.custom_amount != undefined)
+			{
+				totals  = totals + row.custom_amount;
+//				alert("HII");				
+			}
+		}
+		
+		cur_frm.set_value("total", totals);	
+		cur_frm.set_value("grand_total", totals);
+		cur_frm.set_value("net_total", totals);
+		cur_frm.set_value("base_rounded_total", totals);	
+		cur_frm.set_value("base_total", totals);
+		cur_frm.set_value("base_net_total", totals);
+		cur_frm.set_value("base_grand_total", totals);	
+		cur_frm.set_value("rounded_total", totals);	
+		
+//		alert(totals);
+//		cur_frm.refresh_fields();	
+		cur_frm.cscript.custom_refresh(totals);
 	}
 });
+
+cur_frm.cscript.custom_refresh = function(frm){
+	
+		cur_frm.set_value("total", totals);	
+		cur_frm.set_value("grand_total", totals);
+		cur_frm.set_value("net_total", totals);
+		cur_frm.set_value("base_rounded_total", totals);	
+		cur_frm.set_value("base_total", totals);
+		cur_frm.set_value("base_net_total", totals);
+		cur_frm.set_value("base_grand_total", totals);	
+		cur_frm.set_value("rounded_total", totals);	
+}
 
 erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend({
 	refresh: function(doc, dt, dn) {
@@ -83,10 +126,10 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 						["Sales", "Shopping Cart"].indexOf(doc.order_type)===-1) {
 					cur_frm.add_custom_button(__('Maintenance Visit'), this.make_maintenance_visit, __("Make"));
 					cur_frm.add_custom_button(__('Maintenance Schedule'), this.make_maintenance_schedule, __("Make"));
-				}
+				}			
 
-
-			} else {
+			} 
+			else {
 				if (this.frm.has_perm("submit")) {
 					// un-close
 					cur_frm.add_custom_button(__('Re-open'), cur_frm.cscript['Unclose Sales Order'], __("Status"));
@@ -275,35 +318,55 @@ frappe.ui.form.on("Sales Order Item", "deck_sft", function(frm, cdt, cdn) //Crea
 })
 
 frappe.ui.form.on("Sales Order Item", "custom_amount", function(frm, cdt, cdn) //Created by Amitha M.D.
-{		
+{	
 	row = locals[cdt][cdn];
-	row.amount = row.custom_amount;	
-	
+	totals=0;
+//	row.amount = row.custom_amount;	
+//	alert(row.custom_amount);
 	if(row.qty!=undefined){				
 		var area  = row.qty;
 		var total = row.custom_amount;	
 		row['rate'] = flt((total/area),2);
 	}
-	for(key in frm.doc.items)
-	{			
+	for(key in cur_frm.doc.items)
+	{		
+//		alert("for");	
 //		var item = cur_frm.doc.items[key]	
-		if(key.custom_amount != undefined)
+		if(cur_frm.doc.items[key].custom_amount != undefined)
 		{
-			totals  = totals + key.custom_amount;				
+		//	totals  = totals + key.custom_amount;	
+			totals  = totals +cur_frm.doc.items[key].custom_amount;
+//			alert(cur_frm.doc.items[key].custom_amount);		
 		}
 	}
+	row['amount'] = row.custom_amount;
 	cur_frm.set_value("total", totals);	
 	cur_frm.set_value("grand_total", totals);
+	cur_frm.set_value("net_total", totals);
+	cur_frm.set_value("base_rounded_total", totals);	
+	cur_frm.set_value("base_total", totals);
+	cur_frm.set_value("base_net_total", totals);
+	cur_frm.set_value("base_grand_total", totals);	
+	cur_frm.set_value("rounded_total", totals);
 	cur_frm.refresh_fields();
 })
 
+/*
+cur_frm.cscript.qty = function(doc, cdt, cdn) {
+	var d = locals[cdt][cdn];
+	if (d.qty && d.unit_cost) {
+		d.total_cost = flt(d.qty)*flt(d.unit_cost);
+		refresh_field('total_cost', cdn, 'items');
+	}
+}
+cur_frm.cscript.unit_cost = cur_frm.cscript.qty;                */
 
-frappe.ui.form.on("Sales Order Item", "amount", function(frm, cdt, cdn) //Created by Amitha M.D.
-{		
-	row = locals[cdt][cdn];
-	if(row.qty!=undefined){				
-		var area  = row.qty;
-		var total = row.amount;	
+//frappe.ui.form.on("Sales Order Item", "amount", function(frm, cdt, cdn) //Created by Amitha M.D.
+//{		
+//	row = locals[cdt][cdn];
+//	if(row.qty!=undefined){				
+//		var area  = row.qty;
+//		var total = row.custom_amount;	
 /*		var grand_total= frm.doc.grand_total;		
 				
 //		long_rate  =  flt((total/area),10);	
@@ -349,8 +412,8 @@ frappe.ui.form.on("Sales Order Item", "amount", function(frm, cdt, cdn) //Create
 //		cur_frm.set_value("discount_amount",discount);
 		cur_frm.refresh_fields();
 		//frm.refresh();		*/
-		row['rate'] = flt((total/area),2);
-		cur_frm.refresh_fields();
-	}	
-});
+//		row['rate'] = flt((total/area),2);
+//		cur_frm.refresh_fields();
+//	}	
+//});
 

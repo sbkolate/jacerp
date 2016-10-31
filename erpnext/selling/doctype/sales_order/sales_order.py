@@ -49,6 +49,7 @@ class SalesOrder(SellingController):
 	#	self.rounded_total = round(self.net_total,-2)
 		self.rounded_total = frappe.utils.data.rounded (self.net_total, -2)
 		self.in_words = frappe.utils.data.money_in_words(self.rounded_total)
+		self.base_in_words = frappe.utils.data.money_in_words(self.rounded_total)
 
 	def validate_mandatory(self):
 		# validate transaction date v/s delivery date
@@ -156,6 +157,10 @@ class SalesOrder(SellingController):
 			if d.delivered_by_supplier and not d.supplier:
 				frappe.throw(_("Row #{0}: Set Supplier for item {1}").format(d.idx, d.item_code))
 
+#	def on_load(self):
+#		make_amount_constant()
+	
+	
 	def on_submit(self):
 		self.check_credit_limit()
 		self.update_reserved_qty()
@@ -285,11 +290,16 @@ class SalesOrder(SellingController):
 		return project.name	
 		
 	def suggest_project_name(self):
-		service_code=""
-		for row in self.get("items"):
-			service_code=row.item_code
-			break;
-		pjt_name=service_code+"-"+self.customer
+#		service_code=""
+#		for row in self.get("items"):
+#			service_code=row.item_code
+#			break;
+#		pjt_name=service_code+"-"+self.customer
+		cust = self.customer
+		pjts = frappe.db.sql("""Select count(*) from `tabProject` where customer = %s""",(self.customer),as_list=1)
+##		frappe.throw(_(int(pjts[0][0])))
+		pjt_count= int(pjts[0][0])
+		pjt_name = self.customer + "-P" + str(pjt_count)
 		return pjt_name
 		
 
@@ -455,17 +465,22 @@ def get_list_context(context=None):
 	return list_context
 
 def make_amount_constant(doc,method):
-	frappe.msgprint(_("I am from hook method"))
+#	frappe.msgprint(_("I am from hook method"))
 	if doc.doctype == "Sales Order":
-		total = 0		
+		total = 0				
 		for d in doc.get("items"):
 			d.amount = d.custom_amount
 			total += d.custom_amount
+			
 		doc.total = total
 		doc.grand_total = total
-
-
-
+		doc.net_total =total
+		doc.base_total =total
+		doc.base_net_total = total
+		doc.base_grand_total = total 
+		doc.base_rounded_total  =total 
+		doc.rounded_total =total
+#	frappe.msgprint(_("SUBMITTED"))
 
 @frappe.whitelist()
 def close_or_unclose_sales_orders(names, status):
