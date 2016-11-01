@@ -608,7 +608,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		"Sales Order": {
 			"doctype": "Sales Invoice",
 			"field_map": {
-				"party_account_currency": "party_account_currency"
+				"party_account_currency": "party_account_currency",				
 			},
 			"validation": {
 				"docstatus": ["=", 1]
@@ -618,8 +618,9 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 			"doctype": "Sales Invoice Item",
 			"field_map": {
 				"name": "so_detail",
-				"parent": "sales_order",
+				"parent": "sales_order",			
 			},
+			"add_if_empty": True,
 			"postprocess": update_item,
 			"condition": lambda doc: doc.qty and (doc.base_amount==0 or abs(doc.billed_amt) < abs(doc.amount))
 		},

@@ -316,13 +316,13 @@ erpnext.selling.SellingController = erpnext.TransactionController.extend({
 		})
 	},
 	
-	rate: function(doc, cdt, cdn){																	//Amitha M D
+/*	rate: function(doc, cdt, cdn){																	//Amitha M D
 		// if user changes the rate then set margin Rate or amount to 0
 		item = locals[cdt][cdn];
 		item.margin_type = "";
 		item.margin_rate_or_amount = 0.0;
 		cur_frm.refresh_fields();
-	},
+	},                  */
 
 	margin_rate_or_amount: function(doc, cdt, cdn) {
 		// calculated the revised total margin and rate on margin rate changes
