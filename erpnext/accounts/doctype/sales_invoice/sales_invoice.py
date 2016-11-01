@@ -89,6 +89,25 @@ class SalesInvoice(SellingController):
 	def before_save(self):
 		set_account_for_mode_of_payment(self)
 
+	
+#	def onload(self):		
+#		if self.get("items"):
+#			total = 0				
+#			for d in self.get("items"):
+#				d.amount = d.custom_amount
+#				total += d.custom_amount
+			
+#			self.total = total
+#			self.grand_total = total
+#			self.net_total =total
+#			self.base_total =total
+#			self.base_net_total = total
+#			self.base_grand_total = total 
+#			self.base_rounded_total  =total 
+#			self.rounded_total =total
+
+
+
 	def on_submit(self):
 		self.validate_pos_paid_amount()
 

@@ -13,20 +13,20 @@ frappe.ui.form.on("Sales Order", {
 		frm.set_indicator_formatter('item_code',
 			function(doc) { return (doc.qty<=doc.delivered_qty) ? "green" : "orange" })
 	},
-	refresh:function(doc,dt,dn) {
+/*	refresh:function(doc,dt,dn) {
 	//	alert("Refreshing");
-		totals=0;
+		var totals=0;
 		
 		for(key in cur_frm.doc.items)
 		{			
 			var row = cur_frm.doc.items[key];
 			var area  = row.qty;
-			var total = row.custom_amount;	
+			total = row.custom_amount;	
 			row['rate'] = flt((total/area),2);
 			row.amount = row.custom_amount;
 			if(row.custom_amount != undefined)
 			{
-				totals  = totals + row.custom_amount;
+				totals  = totals + total;
 //				alert("HII");				
 			}
 		}
@@ -42,10 +42,11 @@ frappe.ui.form.on("Sales Order", {
 		
 //		alert(totals);
 //		cur_frm.refresh_fields();	
-		cur_frm.cscript.custom_refresh(totals);
-	}
+	//	cur_frm.cscript.custom_refresh(totals);
+	} */
 });
 
+/*
 cur_frm.cscript.custom_refresh = function(frm){
 	
 		cur_frm.set_value("total", totals);	
@@ -56,7 +57,7 @@ cur_frm.cscript.custom_refresh = function(frm){
 		cur_frm.set_value("base_net_total", totals);
 		cur_frm.set_value("base_grand_total", totals);	
 		cur_frm.set_value("rounded_total", totals);	
-}
+} */
 
 erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend({
 	refresh: function(doc, dt, dn) {

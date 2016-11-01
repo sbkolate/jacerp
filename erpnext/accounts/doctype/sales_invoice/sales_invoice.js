@@ -7,6 +7,58 @@ cur_frm.pformat.print_heading = 'Invoice';
 {% include 'erpnext/selling/sales_common.js' %};
 
 frappe.provide("erpnext.accounts");
+
+// from here 
+/*
+
+frappe.ui.form.on("Sales Invoice", {
+	onload:function(doc,dt,dn) {		
+		var totals=0;
+//		alert("ONLOAD");
+		for(key in cur_frm.doc.items)
+		{			
+			var row = cur_frm.doc.items[key];
+			var area  = row.qty;
+			total = row.custom_amount;	
+			row['rate'] = flt((total/area),2);
+			row.amount = row.custom_amount;
+			if(row.custom_amount != undefined)
+			{
+				totals  = totals + total;
+//				alert("HII");				
+			}
+		}
+		doc.total = 555;
+		cur_frm.set_value("total", totals);	
+		cur_frm.set_value("grand_total", totals);
+		cur_frm.set_value("net_total", totals);
+		cur_frm.set_value("base_rounded_total", totals);	
+		cur_frm.set_value("base_total", totals);
+		cur_frm.set_value("base_net_total", totals);
+		cur_frm.set_value("base_grand_total", totals);	
+		cur_frm.set_value("rounded_total", totals);	
+		
+		
+//		alert(totals);
+		cur_frm.refresh_fields();	
+//		cur_frm.cscript.custom_refresh(totals);
+	}
+});  */
+
+/*
+
+cur_frm.cscript.custom_refresh = function(frm){
+		cur_frm.set_value("total", totals);	
+		cur_frm.set_value("grand_total", totals);
+		cur_frm.set_value("net_total", totals);
+		cur_frm.set_value("base_rounded_total", totals);	
+		cur_frm.set_value("base_total", totals);
+		cur_frm.set_value("base_net_total", totals);
+		cur_frm.set_value("base_grand_total", totals);	
+		cur_frm.set_value("rounded_total", totals);	
+} */
+
+//upto this  
 erpnext.accounts.SalesInvoiceController = erpnext.selling.SellingController.extend({
 	onload: function() {
 		var me = this;
